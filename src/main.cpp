@@ -125,10 +125,6 @@ int main(int argc, char *argv[]) {
                 i++;
                 if (i < argc) {
                     string argument(argv[i]);
-                    if (argument.compare(0, 1, "-") == 0) {
-                        cerr << "Option r require an argument" << endl;
-                        print_usage(argv[0], -1);
-                    }
                     r_cutoff = atof(argument.c_str());
                 } else {
                     cerr << "Option r require an argument" << endl;
