@@ -127,15 +127,17 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
                         double r1 = std::log2(x_sum / (e11_TPM + e12_TPM));
                         double r2 = std::log2(y_sum / (e21_TPM + e22_TPM));
                         double p;
-                        if (method == "ttest") {
-                            p = ttest.pvalue(x, y);
-                        } else {
-                            p = wTest.pvalue(x, y);
-                        }
-                        if (!std::isnan(p)) {
-                            pvalue.push_back(p);
-                            SptrDiffExpIntron d = std::make_shared<DiffExpIntron>(DiffExpIntron(make_pair(r1, r2), g, f, c->getId(), p, std::log2(x_sum / y_sum), x_sum, y_sum));
-                            diffexpIRdata.push_back(d);
+                        if (x.size() != 0 && y.size() != 0) {
+                            if (method == "ttest") {
+                                p = ttest.pvalue(x, y);
+                            } else {
+                                p = wTest.pvalue(x, y);
+                            }
+                            if (!std::isnan(p)) {
+                                pvalue.push_back(p);
+                                SptrDiffExpIntron d = std::make_shared<DiffExpIntron>(DiffExpIntron(make_pair(r1, r2), g, f, c->getId(), p, std::log2(x_sum / y_sum), x_sum, y_sum));
+                                diffexpIRdata.push_back(d);
+                            }
                         }
                     }
                 }
