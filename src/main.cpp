@@ -34,6 +34,7 @@
 #include "GenomeFactory.h"
 #include "ReadFactory.h"
 #include "DiffExpIR.h"
+#include "Stats.h"
 
 using namespace std;
 using namespace ngs;
@@ -59,6 +60,7 @@ void print_usage(char *program_name, int exit_code) {
     cerr << "-f    Minimum fold change to filter out (default value: 2.0), wilcox\n";
     cerr << "-v    Minimum P-Value to filter out (default value: 1.0E-6)\n";
     cerr << "-r    Minimum fold change between intron and neighboring exons (default value: -1.0)\n";
+    cerr << "-fdr    FRD Correction on the P-Values\n";
     cerr << "\n********************************************************************************\n";
     cerr << "\n                        Roberto Vera Alvarez, PhD\n";
     cerr << "            Emails: veraalva@ncbi.nlm.nih.gov, r78v10a07@gmail.com\n\n";
@@ -77,6 +79,7 @@ int main(int argc, char *argv[]) {
     double fc_cutoff = 2.0;
     double pvalue_cutoff = 1.0E-6;
     double r_cutoff = -1.0;
+    bool useFDR = false;
     int intronCutOff = 16;
     vector<string> samples;
     set<string>features = {"exon"};
@@ -108,6 +111,8 @@ int main(int argc, char *argv[]) {
                     cerr << "Option f require an argument" << endl;
                     print_usage(argv[0], -1);
                 }
+            } else if (option.compare(1, 3, "fdr") == 0) {
+                useFDR = true;                
             } else if (option.compare(1, 1, "v") == 0) {
                 i++;
                 if (i < argc) {
@@ -281,7 +286,7 @@ int main(int argc, char *argv[]) {
 
     uTime.setTime();
     cerr << "Processing TMP data ... " << endl;
-    diffExpIR.calculateDiffExpIR(readFactory, samples, method);
+    diffExpIR.calculateDiffExpIR(readFactory, samples, method, useFDR);
     cerr << "Done in " << uTime.getElapseTimeSec() << " seconds" << endl;
 
     uTime.setTime();
