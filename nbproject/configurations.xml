@@ -99,7 +99,7 @@
         </asmTool>
         <linkerTool>
           <output>bin/diffexpIR</output>
-          <commandLine>-lbamtools -lm</commandLine>
+          <commandLine>-lbamtools -lm -lz</commandLine>
         </linkerTool>
       </compileType>
       <item path=".gitignore" ex="false" tool="3" flavor2="0">

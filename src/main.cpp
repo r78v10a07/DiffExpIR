@@ -57,7 +57,7 @@ void print_usage(char *program_name, int exit_code) {
     cerr << "-c    Smaller size allowed for an intron created for genes. Default: 16. We recommend to use the reads length\n";
     cerr << "-p    Prefix for grouping samples. (sample_1,sample_2)\n";
     cerr << "-s    Stat method: ttest (default), wilcox\n";
-    cerr << "-f    Minimum fold change to filter out (default value: 2.0), wilcox\n";
+    cerr << "-f    Minimum fold change to filter out (default value: 2.0)\n";
     cerr << "-v    Minimum P-Value to filter out (default value: 1.0E-6)\n";
     cerr << "-r    Minimum fold change between intron and neighboring exons (default value: -1.0)\n";
     cerr << "-fdr    FRD Correction on the P-Values\n";
