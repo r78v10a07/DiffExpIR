@@ -50,7 +50,7 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
 
     for (auto cIt : readFactory.getGenomeFactory().getChromosomes()) {
         c = cIt.second;
-//        cout << "Chromosome: " << c->getId() << endl;
+        cerr << "Processing chromosome: " << c->getId() << endl;
         for (auto it : c->getGenes()) {
             g = it;
 //            cout << "Gene: " << g->getId();
@@ -142,8 +142,8 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
                             } else {
                                 p = wTest.pvalue(x, y);
                             }
+//                            cout << c->getId() << "\t" << g->getId() << "\tPValue: " << p << " R: " << r1 << " " << r2 << " Mean: " << x_sum << " " << y_sum << " log2: " << std::log2(x_sum / y_sum) << endl;
                             if (!std::isnan(p)) {
-//                                cout << "\t\t\tPValue: " << p << " R: " << r1 << " " << r2 << " Mean: " << x_sum << " " << y_sum << " log2: " << std::log2(x_sum / y_sum) << endl;
                                 pvalue.push_back(p);
                                 SptrDiffExpIntron d = std::make_shared<DiffExpIntron>(DiffExpIntron(make_pair(r1, r2), g, f, c->getId(), p, std::log2(x_sum / y_sum), x_sum, y_sum));
                                 diffexpIRdata.push_back(d);
