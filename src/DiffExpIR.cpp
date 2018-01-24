@@ -51,10 +51,11 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
     for (auto cIt : readFactory.getGenomeFactory().getChromosomes()) {
         c = cIt.second;
         cerr << "Processing chromosome: " << c->getId() << endl;
+        fflush(NULL);
         for (auto it : c->getGenes()) {
             g = it;
-//            cout << "Gene: " << g->getId();
-//            fflush(NULL);
+            cerr << "\tGene: " << g->getId();
+            fflush(NULL);
             if (g->isProcessed()) {
 //                cout << "\tProcessed" << endl;
 //                fflush(NULL);
