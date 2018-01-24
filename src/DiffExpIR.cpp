@@ -54,7 +54,7 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
         fflush(NULL);
         for (auto it : c->getGenes()) {
             g = it;
-            cerr << "\tGene: " << g->getId();
+            cerr << "\tGene: " << g->getId() << endl;
             fflush(NULL);
             if (g->isProcessed()) {
 //                cout << "\tProcessed" << endl;
