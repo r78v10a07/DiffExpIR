@@ -50,12 +50,11 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
 
     for (auto cIt : readFactory.getGenomeFactory().getChromosomes()) {
         c = cIt.second;
-        cerr << "Processing chromosome: " << c->getId() << endl;
-        fflush(NULL);
+//        cout << "Chromosome: " << c->getId() << endl;
         for (auto it : c->getGenes()) {
             g = it;
-            cerr << "\tGene: " << g->getId() << endl;
-            fflush(NULL);
+//            cout << "Gene: " << g->getId();
+//            fflush(NULL);
             if (g->isProcessed()) {
 //                cout << "\tProcessed" << endl;
 //                fflush(NULL);
@@ -66,7 +65,7 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
                 e1_count = e2_count = 0;
 //                cout << "\tUniquefeatures: " << g->getUniquefeatures().size() << endl;
 //                fflush(NULL);
-                for (auto fIt = g->getUniquefeatures().begin(); fIt != g->getUniquefeatures().end(); ++fIt) {
+                for (auto fIt = g->getFeatures().begin(); fIt != g->getFeatures().end(); ++fIt) {
                     f = *fIt;
 //                    cout << "\t\tFeature: " << f << endl;
 //                    fflush(NULL);
@@ -110,7 +109,7 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
                             } catch (exceptions::NotFoundException) {
                             }
                         }
-                        for (auto eIt = fIt; eIt != g->getUniquefeatures().end(); ++eIt) {
+                        for (auto eIt = fIt; eIt != g->getFeatures().end(); ++eIt) {
                             if ((*eIt)->getType() == "exon") {
                                 e12_TPM = e22_TPM = 0.0;
                                 e1_count = e2_count = 0;
@@ -143,8 +142,131 @@ void DiffExpIR::calculateDiffExpIR(ReadFactory& readFactory, std::vector<std::st
                             } else {
                                 p = wTest.pvalue(x, y);
                             }
-//                            cout << c->getId() << "\t" << g->getId() << "\tPValue: " << p << " R: " << r1 << " " << r2 << " Mean: " << x_sum << " " << y_sum << " log2: " << std::log2(x_sum / y_sum) << endl;
                             if (!std::isnan(p)) {
+//                                cout << "\t\t\tPValue: " << p << " R: " << r1 << " " << r2 << " Mean: " << x_sum << " " << y_sum << " log2: " << std::log2(x_sum / y_sum) << endl;
+                                pvalue.push_back(p);
+                                SptrDiffExpIntron d = std::make_shared<DiffExpIntron>(DiffExpIntron(make_pair(r1, r2), g, f, c->getId(), p, std::log2(x_sum / y_sum), x_sum, y_sum));
+                                diffexpIRdata.push_back(d);
+                            }
+                        }
+                    }
+                }
+            } else {
+//                cout << "\tNo processed" << endl;
+                fflush(NULL);
+            }
+        }
+    }
+
+    if (useFDR)
+        pvalue = fdrCorrection.fdr_correction(pvalue);
+}
+
+void DiffExpIR::calculateDiffExpIRUnique(ReadFactory& readFactory, std::vector<std::string> samples, std::string method, bool useFDR) {
+    stats::WilcoxTest wTest;
+    stats::TTest ttest;
+    stats::FDRCorrection fdrCorrection;
+    SPtrChromosomeNGS c;
+    SPtrGeneNGS g;
+    SPtrIsoformNGS i;
+    SPtrFeatureNGS f;
+
+    for (auto cIt : readFactory.getGenomeFactory().getChromosomes()) {
+        c = cIt.second;
+//        cout << "Chromosome: " << c->getId() << endl;
+        for (auto it : c->getGenes()) {
+            g = it;
+//            cout << "Gene: " << g->getId();
+//            fflush(NULL);
+            if (g->isProcessed()) {
+//                cout << "\tProcessed" << endl;
+//                fflush(NULL);
+                double e11_TPM, e12_TPM, e21_TPM, e22_TPM;
+                int e1_count, e2_count;
+                e11_TPM = e21_TPM = 0.0;
+                e12_TPM = e22_TPM = 0.0;
+                e1_count = e2_count = 0;
+//                cout << "\tUniquefeatures: " << g->getUniquefeatures().size() << endl;
+//                fflush(NULL);
+                for (auto fIt = g->getUniqueFeatures().begin(); fIt != g->getUniqueFeatures().end(); ++fIt) {
+                    f = *fIt;
+//                    cout << "\t\tFeature: " << f << endl;
+//                    fflush(NULL);
+                    if (f->getType() == "exon") {
+                        e11_TPM = e21_TPM = 0.0;
+                        e1_count = e2_count = 0;
+                        for (auto s : readFactory.getSamples()) {
+                            try {
+                                SPtrSampleData sd = f->getData().getSampleData(s);
+                                if (s.compare(0, samples[0].size(), samples[0]) == 0) {
+                                    e11_TPM += sd->getTPM();
+                                    e1_count++;
+                                } else if (s.compare(0, samples[1].size(), samples[1]) == 0) {
+                                    e21_TPM += sd->getTPM();
+                                    e2_count++;
+                                }
+                            } catch (exceptions::NotFoundException) {
+                            }
+                        }
+                        e11_TPM = e11_TPM / static_cast<double> (e1_count);
+                        e21_TPM = e21_TPM / static_cast<double> (e2_count);
+                    } else if (f->getType() == "intron") {
+                        vector<double> x;
+                        double x_sum = 0.0;
+                        vector<double> y;
+                        double y_sum = 0.0;
+                        for (auto s : readFactory.getSamples()) {
+                            try {
+                                SPtrSampleData sd = f->getData().getSampleData(s);
+                                if (s.compare(0, samples[0].size(), samples[0]) == 0) {
+                                    double tpm = sd->getTPM();
+                                    if (tpm < 10E-5) tpm = 10E-5;
+                                    x.push_back(tpm);
+                                    x_sum += tpm;
+                                } else if (s.compare(0, samples[1].size(), samples[1]) == 0) {
+                                    double tpm = sd->getTPM();
+                                    if (tpm < 10E-5) tpm = 10E-5;
+                                    y.push_back(tpm);
+                                    y_sum += tpm;
+                                }
+                            } catch (exceptions::NotFoundException) {
+                            }
+                        }
+                        for (auto eIt = fIt; eIt != g->getUniqueFeatures().end(); ++eIt) {
+                            if ((*eIt)->getType() == "exon") {
+                                e12_TPM = e22_TPM = 0.0;
+                                e1_count = e2_count = 0;
+                                for (auto s : readFactory.getSamples()) {
+                                    try {
+                                        SPtrSampleData sd = f->getData().getSampleData(s);
+                                        if (s.compare(0, samples[0].size(), samples[0]) == 0) {
+                                            e12_TPM += sd->getTPM();
+                                            e1_count++;
+                                        } else if (s.compare(0, samples[1].size(), samples[1]) == 0) {
+                                            e22_TPM += sd->getTPM();
+                                            e2_count++;
+                                        }
+                                    } catch (exceptions::NotFoundException) {
+                                    }
+                                }
+                                e12_TPM = e12_TPM / static_cast<double> (e1_count);
+                                e22_TPM = e22_TPM / static_cast<double> (e2_count);
+                                break;
+                            }
+                        }
+                        x_sum = x_sum / x.size();
+                        y_sum = y_sum / y.size();
+                        double r1 = std::log2(x_sum / (e11_TPM + e12_TPM));
+                        double r2 = std::log2(y_sum / (e21_TPM + e22_TPM));
+                        double p;
+                        if (x.size() != 0 && y.size() != 0) {    
+                            if (method == "ttest") {
+                                p = ttest.pvalue(x, y);
+                            } else {
+                                p = wTest.pvalue(x, y);
+                            }
+                            if (!std::isnan(p)) {
+//                                cout << "\t\t\tPValue: " << p << " R: " << r1 << " " << r2 << " Mean: " << x_sum << " " << y_sum << " log2: " << std::log2(x_sum / y_sum) << endl;
                                 pvalue.push_back(p);
                                 SptrDiffExpIntron d = std::make_shared<DiffExpIntron>(DiffExpIntron(make_pair(r1, r2), g, f, c->getId(), p, std::log2(x_sum / y_sum), x_sum, y_sum));
                                 diffexpIRdata.push_back(d);
