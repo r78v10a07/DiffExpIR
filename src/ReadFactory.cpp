@@ -898,8 +898,7 @@ void ReadFactory::createSIMSingleReadsIR(std::string outFileName, sequence::DNAC
                         }
                     }
                 }
-            } catch (exceptions::NotFoundException ex) {
-                cout << ex.what() << endl;
+            } catch (exceptions::NotFoundException ex) {                
             }
         }
 
@@ -911,7 +910,6 @@ void ReadFactory::createSIMSingleReadsIR(std::string outFileName, sequence::DNAC
 }
 
 void ReadFactory::loadTPMCalculatorGenesOutput(std::string dirName) {
-    int count = 0;
     struct dirent *dp;
     string GENESentsufix("_genes.ent");
     string GENESoutsufix("_genes.out");
