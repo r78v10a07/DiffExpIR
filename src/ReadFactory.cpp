@@ -994,8 +994,8 @@ void ReadFactory::loadTPMCalculatorGenesOutput(std::string dirName) {
                     parsers::TextParser fParser;
                     fParser.setFileToParse(fileName);
                     while (fParser.iterate("#", "\t")) {
-                        if (fParser.getWords().size() != 17) {
-                            std::cerr << "Genes TPM out output file with wrong number of fields. It should be 11 tab separated fields" << std::endl;
+                        if (fParser.getWords().size() != 17 && fParser.getWords().size() != 11) {
+                            std::cerr << "Genes TPM out output file with wrong number of fields. It should be 17 tab separated fields or 11 for the old version" << std::endl;
                             exit(-1);
                         }
                         if (fParser.getWords()[0] != "Gene_Id") {
@@ -1005,18 +1005,28 @@ void ReadFactory::loadTPMCalculatorGenesOutput(std::string dirName) {
                                 g->setProcessed(true);
                                 s->increaseReads(atoi(fParser.getWords()[3].c_str()));
                                 s->setTPM(atof(fParser.getWords()[4].c_str()));
-                                s->setUniqueLength(atoi(fParser.getWords()[5].c_str()));
-                                s->increaseUniqueReads(atoi(fParser.getWords()[6].c_str()));
-                                s->setUniqueTPM(atof(fParser.getWords()[7].c_str()));
-                                s->setUniqueIntronLength(atoi(fParser.getWords()[8].c_str()));
-                                s->increaseUniqueReadsIntron(atoi(fParser.getWords()[9].c_str()));
-                                s->setUniqueTPMIntron(atof(fParser.getWords()[10].c_str()));
-                                s->increaseExonLength(atoi(fParser.getWords()[11].c_str()));
-                                s->increaseExonReads(atoi(fParser.getWords()[12].c_str()));
-                                s->setTPMExon(atof(fParser.getWords()[13].c_str()));
-                                s->increaseIntronLength(atoi(fParser.getWords()[14].c_str()));
-                                s->increaseIntronReads(atoi(fParser.getWords()[15].c_str()));
-                                s->setTPMIntron(atof(fParser.getWords()[16].c_str()));
+
+                                if (fParser.getWords().size() == 17) {
+                                    s->setUniqueLength(atoi(fParser.getWords()[5].c_str()));
+                                    s->increaseUniqueReads(atoi(fParser.getWords()[6].c_str()));
+                                    s->setUniqueTPM(atof(fParser.getWords()[7].c_str()));
+                                    s->setUniqueIntronLength(atoi(fParser.getWords()[8].c_str()));
+                                    s->increaseUniqueReadsIntron(atoi(fParser.getWords()[9].c_str()));
+                                    s->setUniqueTPMIntron(atof(fParser.getWords()[10].c_str()));
+                                    s->increaseExonLength(atoi(fParser.getWords()[11].c_str()));
+                                    s->increaseExonReads(atoi(fParser.getWords()[12].c_str()));
+                                    s->setTPMExon(atof(fParser.getWords()[13].c_str()));
+                                    s->increaseIntronLength(atoi(fParser.getWords()[14].c_str()));
+                                    s->increaseIntronReads(atoi(fParser.getWords()[15].c_str()));
+                                    s->setTPMIntron(atof(fParser.getWords()[16].c_str()));
+                                }else{
+                                    s->increaseExonLength(atoi(fParser.getWords()[5].c_str()));
+                                    s->increaseExonReads(atoi(fParser.getWords()[6].c_str()));
+                                    s->setTPMExon(atof(fParser.getWords()[7].c_str()));
+                                    s->increaseIntronLength(atoi(fParser.getWords()[8].c_str()));
+                                    s->increaseIntronReads(atoi(fParser.getWords()[9].c_str()));
+                                    s->setTPMIntron(atof(fParser.getWords()[10].c_str()));
+                                }
                             } catch (exceptions::NotFoundException ex) {
                                 std::cerr << "Chromosome: " << fParser.getWords()[1] << " not include in the GTF" << std::endl;
                                 exit(-1);
@@ -1038,7 +1048,7 @@ void ReadFactory::printResultsMatrix(std::string output_name, std::vector<std::s
     SPtrChromosomeNGS c;
     SPtrGeneNGS g;
     SPtrIsoformNGS i;
-    SPtrFeatureNGS f;   
+    SPtrFeatureNGS f;
 
     for (auto col : tpmColumns) {
         ofstream out;
